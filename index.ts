@@ -1,4 +1,4 @@
-import { Scalekit, User } from '@scalekit-sdk/node';
+import { ScalekitClient, User } from '@scalekit-sdk/node';
 import bodyParser from 'body-parser';
 import cookieParser from "cookie-parser";
 import express from "express";
@@ -6,7 +6,7 @@ import path from "path";
 
 const port = process.env.PORT || 8080;
 const app = express();
-const scalekit = new Scalekit(
+const scalekit = new ScalekitClient(
   process.env.SCALEKIT_ENV_URL!,
   process.env.SCALEKIT_CLIENT_ID!,
   process.env.SCALEKIT_CLIENT_SECRET!,
@@ -49,19 +49,32 @@ app.post("/auth/login", async (req, res) => {
 })
 
 app.get("/auth/callback", async (req, res) => {
-  const { code, error_description } = req.query;
+  const { code, error_description, idp_initiated_login } = req.query;
   if (error_description) {
     return res.status(400).json({ message: error_description });
   }
 
-  const { user } = await scalekit.authenticateWithCode({
-    code: code as string,
-    redirectUri: process.env.AUTH_REDIRECT_URI!,
-  });
+  if (idp_initiated_login) {
+    const {connection_id, organization_id, login_hint, relay_state} = await scalekit.getIdpInitiatedLoginClaims(idp_initiated_login as string);
+    const url = scalekit.getAuthorizationUrl(
+      process.env.AUTH_REDIRECT_URI!,
+      {
+        connectionId: connection_id,
+        organizationId: organization_id,
+        loginHint: login_hint,
+      }
+    )
+    return res.redirect(url);
+  }
+
+  const { user } = await scalekit.authenticateWithCode(
+    code as string,
+    process.env.AUTH_REDIRECT_URI!,
+  );
   users.set(user.id, user);
   res.cookie("uid", user.id, { httpOnly: true });
 
-  return res.redirect("/profile");
+  return res.redirect("/auth/me");
 })
 
 app.post("/auth/logout", async (_, res) => {
