@@ -55,15 +55,17 @@ app.get("/auth/callback", async (req, res) => {
   }
 
   if (idp_initiated_login) {
-    const {connection_id, organization_id, login_hint, relay_state} = await scalekit.getIdpInitiatedLoginClaims(idp_initiated_login as string);
+    const { connection_id, organization_id, login_hint, relay_state } = await scalekit.getIdpInitiatedLoginClaims(idp_initiated_login as string);
     const url = scalekit.getAuthorizationUrl(
       process.env.AUTH_REDIRECT_URI!,
       {
         connectionId: connection_id,
         organizationId: organization_id,
         loginHint: login_hint,
+        ...(relay_state && { state: relay_state }),
       }
     )
+    
     return res.redirect(url);
   }
 
