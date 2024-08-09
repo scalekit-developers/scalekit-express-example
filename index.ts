@@ -74,7 +74,7 @@ app.get("/auth/callback", async (req, res) => {
   users.set(user.id, user);
   res.cookie("uid", user.id, { httpOnly: true });
 
-  return res.redirect("/auth/me");
+  return res.redirect("/profile");
 })
 
 app.post("/auth/logout", async (_, res) => {
