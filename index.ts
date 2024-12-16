@@ -6,6 +6,14 @@ import path from "path";
 
 const port = process.env.PORT || 8080;
 const app = express();
+// Validate required environment variables
+const requiredEnvVars = ['SCALEKIT_ENV_URL', 'SCALEKIT_CLIENT_ID', 'SCALEKIT_CLIENT_SECRET', 'AUTH_REDIRECT_URI','HOST'];
+requiredEnvVars.forEach((varName) => {
+  if (!process.env[varName]) {
+    throw new Error(`${varName} is required`);
+  }
+});
+
 const scalekit = new ScalekitClient(
   process.env.SCALEKIT_ENV_URL!,
   process.env.SCALEKIT_CLIENT_ID!,
