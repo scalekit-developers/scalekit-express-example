@@ -26,7 +26,7 @@
 
 ```sh
 # Clone the repository
-git clone --recursive https://github.com/scalekit-inc/scalekit-express-example.git
+git clone --recursive https://github.com/scalekit-developers/shared-ui-for-examples.git
 ```
 
 ```sh
